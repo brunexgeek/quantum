@@ -12,6 +12,45 @@
 
 namespace quantum {
 
+
+Point::Point() : x(0), y(0)
+{
+}
+
+Point::Point( int x, int y ) : x(x), y(y)
+{
+}
+
+Point &Point::operator+=( const Point &that )
+{
+    x += that.x;
+    y += that.y;
+    return *this;
+}
+
+Point &Point::operator-=( const Point &that )
+{
+    x -= that.x;
+    y -= that.y;
+    return *this;
+}
+
+Point Point::operator+( const Point &that )
+{
+    Point result;
+    result.x = x + that.x;
+    result.y = y + that.y;
+    return result;
+}
+
+Point Point::operator-( const Point &that )
+{
+    Point result;
+    result.x = x - that.x;
+    result.y = y - that.y;
+    return result;
+}
+
 Line::Line() : x1(0), y1(0), x2(0), y2(0)
 {
 }
@@ -28,10 +67,15 @@ Rect::Rect( int x, int y, int w, int h ) : x(x), y(y), w(w), h(h)
 {
 }
 
+bool Rect::intersect( const Point &point ) const
+{
+    return point.x >= x && point.x < x + w && point.y >= y && point.y < y + h;
+}
+
 SDLRenderer::SDLRenderer( bool init, int width, int height, uint32_t color ) : init_(init),
     width_(width), height_(height), color_(color)
 {
-    if (init_) SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
+    if (init_) SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 
 	SDL_Rect srect;
 	SDL_GetDisplayBounds(0, &srect);
@@ -42,16 +86,16 @@ SDLRenderer::SDLRenderer( bool init, int width, int height, uint32_t color ) : i
 	}
 
 	window_ = SDL_CreateWindow("Quantum", srect.w / 2 - width / 2, srect.h / 2 - height / 2, width_, height_, SDL_WINDOW_SHOWN);
-	renderer_ = SDL_CreateRenderer((SDL_Window *)window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	renderer_ = SDL_CreateRenderer((SDL_Window *)window_, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC*/);
     fill(color_);
-    update();
+    draw();
 }
 
 SDLRenderer::~SDLRenderer()
 {
     SDL_DestroyRenderer((SDL_Renderer *)renderer_);
     SDL_DestroyWindow((SDL_Window *)window_);
-    if (init_) SDL_Quit();
+    if (init_) SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 }
 
 void SDLRenderer::line( int x1, int y1, int x2, int y2, uint32_t color )
@@ -115,20 +159,25 @@ void SDLRenderer::clear()
     fill(color_);
 }
 
-void SDLRenderer::update()
+void SDLRenderer::draw()
 {
     SDL_RenderPresent( (SDL_Renderer*) renderer_ );
 }
 
-ScaledRenderer::ScaledRenderer( bool init, int w1, int h1, int w2, int h2, uint32_t color ) :
-    SDLRenderer(init, w1, h1, color), texw_(w2), texh_(h2)
+int SDLRenderer::get_scale() const
 {
-    texture_ = SDL_CreateTexture( (SDL_Renderer*) renderer_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w1, h1);
+    return 1;
+}
+
+ScaledRenderer::ScaledRenderer( bool init, int w1, int h1, int scale, uint32_t color ) :
+    SDLRenderer(init, w1 * scale, h1 * scale, color), texw_(w1), texh_(h1), scale_(scale)
+{
+    texture_ = SDL_CreateTexture( (SDL_Renderer*) renderer_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, texw_, texh_);
     SDL_SetRenderTarget( (SDL_Renderer*) renderer_, (SDL_Texture*) texture_ );
     clear();
 }
 
-void ScaledRenderer::update()
+void ScaledRenderer::draw()
 {
     SDL_SetRenderTarget( (SDL_Renderer*) renderer_, nullptr );
     SDL_Rect src = {0, 0, texw_, texh_};
@@ -147,6 +196,11 @@ void ScaledRenderer::fill( uint32_t color )
     rect.w = texw_;
     rect.h = texh_;
     SDL_RenderFillRect( (SDL_Renderer*) renderer_, &rect);
+}
+
+int ScaledRenderer::get_scale() const
+{
+    return scale_;
 }
 
 } // namespace quantum

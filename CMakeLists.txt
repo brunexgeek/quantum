@@ -27,6 +27,7 @@ message("Build type: ${CMAKE_BUILD_TYPE}")
 add_library(quantum_gui STATIC
     "source/api.cc"
     "source/widget.cc"
+    "source/input.cc"
     "source/renderer.cc" )
 target_include_directories(quantum_gui PUBLIC "include/")
 target_link_libraries(quantum_gui "SDL2")

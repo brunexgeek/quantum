@@ -1,24 +1,15 @@
 #include <quantum/widget.hh>
+#include <cstring>
 
 namespace quantum {
 
-Point::Point() : x(0), y(0)
+Widget::Widget( int x, int y ) : pos_(x, y), changed_(true)
 {
 }
 
-Point::Point( int x, int y ) : x(x), y(y)
+bool Widget::is_changed() const
 {
-}
-
-Point &Point::operator+=( const Point &that )
-{
-    x += that.x;
-    y += that.y;
-    return *this;
-}
-
-Widget::Widget( int x, int y ) : pos_(x, y)
-{
+    return changed_;
 }
 
 Point Widget::position() const
@@ -62,59 +53,102 @@ Container *Container::parent()
     return nullptr;
 }
 
-Window::Window( int x, int y, int cwidth, int cheight ) : Container(x, y), cwidth_(cwidth), cheight_(cheight)
+Window::Window( int x, int y, int cwidth, int cheight ) : Container(x, y), cwidth_(cwidth),
+    cheight_(cheight), moving_(false)
 {
     width_ = BORDER_THICKNESS * 2 + cwidth_;
     height_ = TITLE_HEIGHT + BORDER_THICKNESS * 2 + cheight_;
 }
 
-void Window::draw( Renderer &rend )
+void Window::draw( Renderer &rend, bool force )
 {
-    int sx = pos_.x;
-    int sy = pos_.y;
-
-    Rect rect;
-    // window area
-    rend.rectangle(sx, sy, width_, height_, 0x000000FF);
-    rect.x = sx + BORDER_THICKNESS,
-    rect.y = sy + BORDER_THICKNESS,
-    rect.w = cwidth_;
-    rect.h = cheight_ + TITLE_HEIGHT;
-    rend.fill(rect, 0xFFFFFFFF);
-
-    // title bar
-    Line line;
-    line.x1 = sx + BORDER_THICKNESS + 1;
-    line.y1 = sy + BORDER_THICKNESS + 3;
-    line.x2 = sx + cwidth_ - 1;
-    line.y2 = sy + BORDER_THICKNESS + 3;
-    for (int i = 0; i < 6; ++i)
+    if (changed_ || force)
     {
-        rend.line(line, 0xFF);
-        line.y1 += 2;
-        line.y2 += 2;
+        changed_ = false;
+        force = true;
+
+        int sx = pos_.x;
+        int sy = pos_.y;
+
+        Rect rect;
+        // window area
+        rend.rectangle(sx, sy, width_, height_, 0x000000FF);
+        rect.x = sx + BORDER_THICKNESS,
+        rect.y = sy + BORDER_THICKNESS,
+        rect.w = cwidth_;
+        rect.h = cheight_ + TITLE_HEIGHT;
+        rend.fill(rect, 0xFFFFFFFF);
+
+        // title bar
+        Line line;
+        line.x1 = sx + BORDER_THICKNESS + 1;
+        line.y1 = sy + BORDER_THICKNESS + 3;
+        line.x2 = sx + cwidth_ - 1;
+        line.y2 = sy + BORDER_THICKNESS + 3;
+        for (int i = 0; i < 6; ++i)
+        {
+            rend.line(line, 0xFF);
+            line.y1 += 2;
+            line.y2 += 2;
+        }
+        rend.line(sx, sy + TITLE_HEIGHT, sx + width_, sy + TITLE_HEIGHT, 0x000000FF);
+        // close button
+        rect.x = sx + BORDER_THICKNESS + 7;
+        rect.y = sy + BORDER_THICKNESS + 2;
+        rect.w = 13;
+        rect.h = 13;
+        rend.fill(rect, 0xFFFFFFFF);
+        rect.x += 1;
+        rect.y += 1;
+        rect.w -= 2;
+        rect.h -= 2;
+        rend.rectangle(rect, 0x000000FF);
+
+        // draw moving frame
+        if (moving_)
+        {
+            rend.rectangle(new_pos_.x, new_pos_.y, width_, height_, 0x7F007F7F);
+        }
     }
-    rend.line(sx, sy + TITLE_HEIGHT, sx + width_, sy + TITLE_HEIGHT, 0x000000FF);
-    // close button
-    rect.x = sx + BORDER_THICKNESS + 7;
-    rect.y = sy + BORDER_THICKNESS + 2;
-    rect.w = 13;
-    rect.h = 13;
-    rend.fill(rect, 0xFFFFFFFF);
-    rect.x += 1;
-    rect.y += 1;
-    rect.w -= 2;
-    rect.h -= 2;
-    rend.rectangle(rect, 0x000000FF);
 
     for (auto it = children_.begin(); it != children_.end(); ++it)
-        (*it)->draw(rend);
+        (*it)->draw(rend, force);
 }
 
 bool Window::update( Event &event )
 {
-    (void) event;
-    return false;
+    for (auto it = children_.begin(); it != children_.end(); ++it)
+    {
+        (*it)->update(event);
+    }
+
+    if (event.type < ET_MOUSE_DOWN && event.type > ET_MOUSE_MOVE) return false;
+
+    if (event.type == ET_MOUSE_DOWN && !moving_)
+    {
+        Rect title(pos_.x, pos_.y, width_, TITLE_HEIGHT);
+        if (title.intersect(event.mouse_button.cursor))
+        {
+            moving_ = true;
+            drag_off_ = event.mouse_button.cursor - pos_;
+            new_pos_ = event.mouse_button.cursor - drag_off_;
+        }
+    }
+    else
+    if (event.type == ET_MOUSE_MOVE && moving_)
+    {
+        new_pos_ = event.mouse_move.cursor - drag_off_;
+    }
+    else
+    if (event.type == ET_MOUSE_UP && moving_)
+    {
+        pos_ = event.mouse_button.cursor - drag_off_;
+        moving_ = false;
+    }
+    else
+        return false;
+
+    return changed_ = true;
 }
 
 } // namespace quantum

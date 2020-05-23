@@ -6,6 +6,21 @@
 
 namespace quantum {
 
+struct Point
+{
+    int x, y;
+
+    Point();
+    Point( int x, int y );
+    Point( const Point &that ) = default;
+    Point( Point &&that ) = default;
+    Point &operator =( const Point &that ) = default;
+    Point &operator+=( const Point &that );
+    Point &operator-=( const Point &that );
+    Point operator+( const Point &that );
+    Point operator-( const Point &that );
+};
+
 struct Line
 {
     int x1, y1, x2, y2;
@@ -20,6 +35,7 @@ struct Rect
 
     Rect();
     Rect( int x1, int y1, int w, int h );
+    bool intersect( const Point &point ) const;
 };
 
 class Renderer
@@ -34,7 +50,8 @@ class Renderer
         virtual void fill( const Rect &rect, uint32_t color ) = 0;
         virtual void fill( uint32_t color ) = 0;
         virtual void clear() = 0;
-        virtual void update() = 0;
+        virtual void draw() = 0;
+        virtual int get_scale() const = 0;
 };
 
 class SDLRenderer : public Renderer
@@ -50,7 +67,8 @@ class SDLRenderer : public Renderer
         void fill( const Rect &rect, uint32_t color ) override;
         void fill( uint32_t color ) override;
         void clear() override;
-        void update() override;
+        void draw() override;
+        int get_scale() const override;
 
     protected:
         bool init_;
@@ -64,13 +82,15 @@ class SDLRenderer : public Renderer
 class ScaledRenderer : public SDLRenderer
 {
     public:
-        ScaledRenderer( bool init, int w1, int h1, int w2, int h2, uint32_t color );
+        ScaledRenderer( bool init, int w1, int h1, int scale, uint32_t color );
         void fill( uint32_t color ) override;
-        void update() override;
+        void draw() override;
+        int get_scale() const override;
 
     protected:
         int texw_, texh_;
         void *texture_;
+        int scale_;
 };
 
 } // namespace quantum
