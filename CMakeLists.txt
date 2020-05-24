@@ -28,6 +28,7 @@ add_library(quantum_gui STATIC
     "source/api.cc"
     "source/widget.cc"
     "source/input.cc"
+    "source/fonts.cc"
     "source/renderer.cc" )
 target_include_directories(quantum_gui PUBLIC "include/")
 target_link_libraries(quantum_gui "SDL2")
@@ -42,6 +43,13 @@ add_executable(demo "demo.cc")
 target_link_libraries(demo quantum_gui)
 set_target_properties(demo PROPERTIES
     OUTPUT_NAME "demo"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" )
+
+add_executable(export "fonts/export.cc")
+set_target_properties(export PROPERTIES
+    OUTPUT_NAME "export"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" )

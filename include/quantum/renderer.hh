@@ -52,6 +52,7 @@ class Renderer
         virtual void clear() = 0;
         virtual void draw() = 0;
         virtual int get_scale() const = 0;
+        virtual void *get_native() = 0;
 };
 
 class SDLRenderer : public Renderer
@@ -69,6 +70,7 @@ class SDLRenderer : public Renderer
         void clear() override;
         void draw() override;
         int get_scale() const override;
+        void *get_native() override;
 
     protected:
         bool init_;

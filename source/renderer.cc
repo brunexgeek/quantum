@@ -169,6 +169,11 @@ int SDLRenderer::get_scale() const
     return 1;
 }
 
+void *SDLRenderer::get_native()
+{
+    return renderer_;
+}
+
 ScaledRenderer::ScaledRenderer( bool init, int w1, int h1, int scale, uint32_t color ) :
     SDLRenderer(init, w1 * scale, h1 * scale, color), texw_(w1), texh_(h1), scale_(scale)
 {
