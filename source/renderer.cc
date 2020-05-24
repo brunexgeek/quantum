@@ -69,7 +69,7 @@ Rect::Rect( int x, int y, int w, int h ) : x(x), y(y), w(w), h(h)
 
 bool Rect::intersect( const Point &point ) const
 {
-    return point.x >= x && point.x < x + w && point.y >= y && point.y < y + h;
+    return point.x >= x && point.x <= x + w && point.y >= y && point.y <= y + h;
 }
 
 SDLRenderer::SDLRenderer( bool init, int width, int height, uint32_t color ) : init_(init),

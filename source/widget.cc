@@ -91,7 +91,7 @@ void Window::draw( Renderer &rend, bool force )
             line.y1 += 2;
             line.y2 += 2;
         }
-        rend.line(sx, sy + TITLE_HEIGHT, sx + width_, sy + TITLE_HEIGHT, 0x000000FF);
+        rend.line(sx, sy + TITLE_HEIGHT, sx + width_ - 1, sy + TITLE_HEIGHT, 0x000000FF);
         // close button
         rect.x = sx + BORDER_THICKNESS + 7;
         rect.y = sy + BORDER_THICKNESS + 2;
