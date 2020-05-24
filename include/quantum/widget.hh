@@ -40,6 +40,7 @@ class Container : public Widget
         Container( int x, int y );
         Container( Container *parent, int x, int y );
         virtual void append( Widget *object );
+        virtual void append( Widget &object );
 
     protected:
         std::list<Widget*> children_;
@@ -64,6 +65,14 @@ class Window : public Container
         bool moving_;
         Point new_pos_;
         Point drag_off_;
+};
+
+class Label : public Widget
+{
+    public:
+        Label( int x, int y, const std::string &text );
+        void draw( Renderer &rend, bool force = false );
+        bool update( Event &event );
 };
 
 } // namespace quantum

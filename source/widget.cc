@@ -63,6 +63,11 @@ void Container::append( Widget *object )
     children_.push_back(object);
 }
 
+void Container::append( Widget &object )
+{
+    append(&object);
+}
+
 Window::Window( int x, int y, int cwidth, int cheight ) : Container(x, y), cwidth_(cwidth),
     cheight_(cheight), moving_(false)
 {
