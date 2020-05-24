@@ -15,17 +15,20 @@ class Widget
     public:
         Widget() = default;
         Widget( int x, int y );
+        Widget( Container *parent, int x, int y );
         virtual void draw( Renderer &rend, bool force = false ) = 0;
         virtual bool update( Event &event ) = 0;
         virtual Point position() const;
         virtual void position( const Point &point );
-        virtual const Container *parent() const = 0;
-        virtual Container *parent() = 0;
+        virtual void parent( Container *object );
+        virtual const Container *parent() const;
+        virtual Container *parent();
         virtual bool is_changed() const;
 
     protected:
         Point pos_;
         bool changed_;
+        Container *parent_;
 
         virtual Point absolute_position() const;
 };
@@ -37,11 +40,8 @@ class Container : public Widget
         Container( int x, int y );
         Container( Container *parent, int x, int y );
         virtual void append( Widget *object );
-        const Container *parent() const override;
-        Container *parent() override;
 
     protected:
-        Container *parent_;
         std::list<Widget*> children_;
 };
 

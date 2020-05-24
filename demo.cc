@@ -15,6 +15,7 @@ static constexpr int SCREEN_HEIGHT = 768 / 2;
 int main( int argc, char **argv )
 {
     ScaledRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, 2, 0x7F7F7FFF);
+    //SDLRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, 0x7F7F7FFF);
     Window window(50, 50, 250, 150);
     SDLInputManager input(true, renderer);
 

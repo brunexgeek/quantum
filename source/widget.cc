@@ -7,6 +7,10 @@ Widget::Widget( int x, int y ) : pos_(x, y), changed_(true)
 {
 }
 
+Widget::Widget( Container *parent, int x, int y ) : pos_(x, y), changed_(true), parent_(parent)
+{
+}
+
 bool Widget::is_changed() const
 {
     return changed_;
@@ -30,27 +34,33 @@ Point Widget::absolute_position() const
     return result;
 }
 
+const Container *Widget::parent() const
+{
+    return parent_;
+}
+
+Container *Widget::parent()
+{
+    return parent_;
+}
+
+void Widget::parent( Container *object )
+{
+    parent_ = object;
+}
+
 Container::Container( int x, int y ) : Widget(x, y)
 {
 }
 
-Container::Container( Container *parent, int x, int y ) : Widget(x, y), parent_(parent)
+Container::Container( Container *parent, int x, int y ) : Widget(parent, x, y)
 {
 }
 
 void Container::append( Widget *object )
 {
+    object->parent(this);
     children_.push_back(object);
-}
-
-const Container *Container::parent() const
-{
-    return nullptr;
-}
-
-Container *Container::parent()
-{
-    return nullptr;
 }
 
 Window::Window( int x, int y, int cwidth, int cheight ) : Container(x, y), cwidth_(cwidth),
