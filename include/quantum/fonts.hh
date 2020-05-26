@@ -2,7 +2,7 @@
 #define QUANTUM_FONTS_HH
 
 #include <string>
-#include <vector>
+#include <set>
 
 namespace quantum {
 
@@ -17,6 +17,8 @@ struct Glyph
     int code;
     int start;
     int width;
+
+    bool operator<( const Glyph &that ) const;
 };
 
 class Font
@@ -33,7 +35,7 @@ class Font
         int iw_, ih_, gh_;
         void *texture_;
         const uint8_t *data_;
-        std::vector<Glyph> glyphs_;
+        std::set<Glyph> glyphs_;
 };
 
 class FontManager

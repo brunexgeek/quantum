@@ -10,100 +10,114 @@ struct Glyph
     int width;
 };
 
-struct Font
+static std::string replaceExtension( const std::string &name, const std::string &ext )
 {
-    int width, height;
-    int gheight;
-    std::list<Glyph> glyphs;
-};
+    auto pos = name.rfind('.');
+    if (pos == std::string::npos) "";
+    return name.substr(0, pos) + ext;
+}
 
-static bool parse_font( const char *file_name, Font &font )
+static void createGlyphs( const std::list<std::string> &codes, bool *merged, int width, std::list<Glyph> &glyphs )
 {
-    std::ifstream input(file_name);
-    if (input.good())
+    auto it = codes.begin();
+    int start = -1;
+    for (int i = 0; i < width; ++i)
     {
-        int state = 0;
+        if (it == codes.end()) break;
 
-        while (input.good())
+        if (start < 0 && merged[i])
+            start = i;
+        else
+        if (start >= 0 && !merged[i])
         {
-            std::string line;
-            std::getline(input, line);
-
-            if (line.empty() || line[0] == '#') continue;
-
-            if (state == 0)
-            {
-                sscanf(line.c_str(), "%d %d %d", &font.width, &font.height, &font.gheight);
-                state = 1;
-            }
-            else
-            if (state == 1)
-            {
-                Glyph glyph;
-                sscanf(line.c_str(), "%d %d %d", &glyph.code, &glyph.start, &glyph.width);
-                font.glyphs.push_back(glyph);
-            }
+            Glyph glyph;
+            glyph.code = std::strtol(it->c_str(), nullptr, 10);
+            glyph.start = start;
+            glyph.width = i - start;
+            glyphs.push_back(glyph);
+            ++it;
+            start = -1;
         }
-        input.close();
-        return state == 1;
     }
-    return false;
 }
 
 int main( int argc, char **argv )
 {
-    Font font;
-    if (parse_font(argv[1], font))
+    if (argc != 5)
     {
-        //std::ofstream output(argv[2]);
-        std::ostream &output = std::cout;
-        //if (output.good())
-        {
-            output << "#ifndef FONT_" << argv[3] << "_IMPL\n";
-            output << "#ifndef FONT_" << argv[3] << "\n";
-            output << "#define FONT_" << argv[3] << "\n";
-            output << "extern unsigned char " << argv[3] << "_BITMAP[];\n";
-            output << "extern int " << argv[3] << "_BITMAP_SIZE;\n";
-            output << "extern int " << argv[3] << "_INFO[];\n";
-            output << "extern int " << argv[3] << "_GLYPHS[];\n";
-            output << "#define " << argv[3] << "_GLYPH_COUNT " << font.glyphs.size() << "\n";
-            output << "#endif // FONT_" << argv[3] << "\n\n";
-
-            output << "#else\n";
-
-            output << "int " << argv[3] << "_GLYPHS[] = \n{\n";
-            for (auto it = font.glyphs.begin(); it != font.glyphs.end(); ++it)
-                output << "   " << it->code << ", " << it->start << ", " << it->width << ",\n";
-            output << "};\n";
-
-            output << "unsigned char " << argv[3] << "_BITMAP[] = {";
-            std::ifstream bitmap(argv[2], std::ios_base::binary);
-            uint8_t buffer[512];
-            std::streamsize total = 0;
-            while (bitmap.good())
-            {
-                bitmap.read( (char*)buffer, sizeof(buffer) );
-                total += bitmap.gcount();
-                for (std::streamsize i = 0, t = bitmap.gcount(); i < t; ++i)
-                {
-                    if ((i % 32) == 0) output << "\n   ";
-                    output << ((buffer[i] > 128) ? 1 : 0) << ",";
-                }
-            }
-            output << "};\n";
-            bitmap.close();
-
-            output << "int " << argv[3] << "_BITMAP_SIZE = " << total << ";\n";
-
-            output << "int " << argv[3] << "_INFO[4] = { ";
-            output << font.width << ", " << font.height << ", " << font.gheight;
-            output << " };\n";
-
-            output << "#endif // FONT_" << argv[3] << "_IMPL\n";
-            //output.close();
-            return 0;
-        }
+        std::cerr << "Usage: export <bitmap> <width> <height> <name>" << std::endl;
+        return 1;
     }
 
-    return 1;
+    std::string bitmapFile = argv[1];
+    std::string codeFile = replaceExtension(argv[1], ".code");
+    int width = (int) std::strtol(argv[2], nullptr, 10);
+    int height = (int) std::strtol(argv[3], nullptr, 10);
+    std::string name = argv[4];
+
+    // load the glyph codes order
+    std::list<std::string> codes;
+    std::string line;
+    std::ifstream code(codeFile.c_str());
+    if (!code.good()) return 1;
+    while (code.good())
+    {
+        std::getline(code, line);
+        if (!line.empty() && line[0] != '#') codes.push_back(line);
+    }
+    code.close();
+
+    std::ostream &output = std::cout;
+    output << "#ifndef FONT_" << name << "_IMPL\n";
+    output << "#ifndef FONT_" << name << "\n";
+    output << "#define FONT_" << name << "\n";
+    output << "extern unsigned char " << name << "_BITMAP[];\n";
+    output << "extern int " << name << "_BITMAP_SIZE;\n";
+    output << "extern int " << name << "_INFO[];\n";
+    output << "extern int " << name << "_GLYPHS[];\n";
+    output << "#define " << name << "_GLYPH_COUNT " << codes.size() << "\n";
+    output << "#endif // FONT_" << name << "\n\n";
+    output << "#else\n";
+
+    // print the font bitmap
+    output << "unsigned char " << name << "_BITMAP[] = {";
+    std::ifstream bitmap(bitmapFile, std::ios_base::binary);
+    bool *merged = new bool[width]();
+    uint8_t *buffer = new uint8_t[width];
+    std::streamsize total = 0;
+    while (bitmap.good())
+    {
+        bitmap.read( (char*)buffer, width );
+        if (width != bitmap.gcount()) continue;
+        total += bitmap.gcount();
+
+        // mark the regions with valid pixels
+        for (int i = 0; i < width; ++i) merged[i] |= (buffer[i] < 128);
+        // export the pixels with '0' (black) or '1' (white)
+        for (int i = 0, t = width; i < t; ++i)
+        {
+            if ((i % 32) == 0) output << "\n   ";
+            output << ((buffer[i] != 0) ? 1 : 0) << ",";
+        }
+    }
+    output << "};\n";
+    bitmap.close();
+
+    output << "int " << name << "_BITMAP_SIZE = " << total << ";\n";
+
+    // create the glyph mapping
+    std::list<Glyph> glyphs;
+    createGlyphs(codes, merged, width, glyphs);
+
+    output << "int " << name << "_GLYPHS[] = \n{\n";
+    for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
+        output << "   " << it->code << ", " << it->start << ", " << it->width << ",\n";
+    output << "};\n";
+
+    output << "int " << name << "_INFO[4] = { ";
+    output << width << ", " << height << ", " << height;
+    output << " };\n";
+
+    output << "#endif // FONT_" << name << "_IMPL\n";
+    return 0;
 }

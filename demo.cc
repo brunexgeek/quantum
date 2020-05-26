@@ -6,17 +6,17 @@
 #include <quantum/fonts.hh>
 #include <unistd.h>
 #include <iostream>
-#include "../fonts/system-bold.hh"
+#include "../fonts/system-regular.hh"
 
 using namespace quantum;
 
 static constexpr int SCALE = 2;
-static constexpr int SCREEN_WIDTH = 640 / 2;
-static constexpr int SCREEN_HEIGHT = 480 / 2;
+static constexpr int SCREEN_WIDTH = 1024 / SCALE;
+static constexpr int SCREEN_HEIGHT = 768 / SCALE;
 
 int main( int argc, char **argv )
 {
-    ScaledRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, 2, 0x7F7F7FFF);
+    ScaledRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, SCALE, 0x7F7F7FFF);
     //SDLRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, 0x7F7F7FFF);
     int width = 250;
     int height = 100;
