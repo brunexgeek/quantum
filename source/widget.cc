@@ -94,8 +94,8 @@ void Container::append( Widget &object )
 Window::Window( int x, int y, int cwidth, int cheight ) : Container(x, y, cwidth, cheight), moving_(false)
 {
     csize_ = Point(cwidth, cheight);
-    rect_.w = BORDER_THICKNESS * 2 + cwidth;
-    rect_.h = TITLE_HEIGHT + BORDER_THICKNESS * 2 + cheight;
+    rect_.w = BORDER * 2 + cwidth;
+    rect_.h = TITLE_HEIGHT + BORDER * 2 + cheight;
 }
 
 void Window::draw( Renderer &rend, bool force )
@@ -106,37 +106,39 @@ void Window::draw( Renderer &rend, bool force )
         int sy = rect_.y;
 
         Rect rect;
+        // window shadow
+        rect.x = sx + SHADOW_HOFFSET,
+        rect.y = sy + SHADOW_VOFFSET,
+        rect.w = rect_.w;
+        rect.h = rect_.h;
+        rend.fill(rect, 0x54);
         // window area
-        rend.rectangle(sx, sy, rect_.w, rect_.h, 0x000000FF);
-        rect.x = sx + BORDER_THICKNESS,
-        rect.y = sy + BORDER_THICKNESS,
-        rect.w = csize_.x;
-        rect.h = csize_.y + TITLE_HEIGHT;
+        rect.x = sx,
+        rect.y = sy,
         rend.fill(rect, 0xFFFFFFFF);
+        rend.rectangle(sx, sy, rect_.w, rect_.h, 0x000000FF);
 
         // title bar
         Line line;
-        line.x1 = sx + BORDER_THICKNESS + 1;
-        line.y1 = sy + BORDER_THICKNESS + 3;
-        line.x2 = sx + csize_.x - 1;
-        line.y2 = sy + BORDER_THICKNESS + 3;
-        for (int i = 0; i < 6; ++i)
+        line.x1 = sx + BORDER + TITLE_HMARGIN;
+        line.y1 = sy + BORDER + TITLE_VMARGIN;
+        line.x2 = sx + csize_.x - TITLE_HMARGIN;
+        line.y2 = sy + BORDER + TITLE_VMARGIN;
+        for (int i = 0; i < TITLE_LINES; ++i)
         {
             rend.line(line, 0xFF);
             line.y1 += 2;
             line.y2 += 2;
         }
-        rend.line(sx, sy + TITLE_HEIGHT, sx + rect_.w - 1, sy + TITLE_HEIGHT, 0x000000FF);
+        rend.line(sx, sy + TITLE_HEIGHT - 2, sx + rect_.w - 1, sy + TITLE_HEIGHT - 2, 0x000000FF);
         // close button
-        rect.x = sx + BORDER_THICKNESS + 7;
-        rect.y = sy + BORDER_THICKNESS + 2;
-        rect.w = 13;
-        rect.h = 13;
+        rect.x = sx + BORDER + TITLE_HMARGIN + TITLE_VMARGIN;
+        rect.y = sy + BORDER + TITLE_VMARGIN;
+        rect.w = TITLE_LINES * 2 + 1;
+        rect.h = TITLE_LINES * 2 - 1;
         rend.fill(rect, 0xFFFFFFFF);
         rect.x += 1;
-        rect.y += 1;
         rect.w -= 2;
-        rect.h -= 2;
         rend.rectangle(rect, 0x000000FF);
     }
 
@@ -193,7 +195,7 @@ bool Window::update( Event &event )
 
 Point Window::absolute_position() const
 {
-    return Point(rect_.x + BORDER_THICKNESS, rect_.y + BORDER_THICKNESS + TITLE_HEIGHT);
+    return Point(rect_.x + BORDER, rect_.y + BORDER + TITLE_HEIGHT);
 }
 
 Label::Label( int x, int y, const std::string &text, fonts::Font &font ) : Widget(x, y, 0, 0),

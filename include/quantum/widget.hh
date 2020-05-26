@@ -53,8 +53,13 @@ class Container : public Widget
 class Window : public Container
 {
     public:
-        static constexpr int TITLE_HEIGHT = 18; // px
-        static constexpr int BORDER_THICKNESS = 1; // px
+        static constexpr int BORDER = 1; // px
+        static constexpr int TITLE_LINES = 4; // px
+        static constexpr int TITLE_VMARGIN = 3; // px
+        static constexpr int TITLE_HMARGIN = 1; // px
+        static constexpr int TITLE_HEIGHT = BORDER + TITLE_VMARGIN * 2 + TITLE_LINES * 2 + 1; // px
+        static constexpr int SHADOW_VOFFSET = 2; // px
+        static constexpr int SHADOW_HOFFSET = 2; // px
 
         Window( int x, int y, int width, int height );
         ~Window() = default;
