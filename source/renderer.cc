@@ -1,4 +1,5 @@
 #include <quantum/renderer.hh>
+#include <quantum/fonts.hh>
 #include <SDL2/SDL.h>
 
 #define SET_COLOR(rgba) \
@@ -164,6 +165,23 @@ void SDLRenderer::draw()
     SDL_RenderPresent( (SDL_Renderer*) renderer_ );
 }
 
+void SDLRenderer::draw( void *texture, Rect &from, Rect &to )
+{
+    SDL_Rect sf;
+    sf.x = from.x;
+    sf.y = from.y;
+    sf.w = from.w;
+    sf.h = from.h;
+
+    SDL_Rect st;
+    st.x = to.x;
+    st.y = to.y;
+    st.w = to.w;
+    st.h = to.h;
+
+    SDL_RenderCopy( (SDL_Renderer*) renderer_, (SDL_Texture*) texture, &sf, &st);
+}
+
 int SDLRenderer::get_scale() const
 {
     return 1;
@@ -172,6 +190,27 @@ int SDLRenderer::get_scale() const
 void *SDLRenderer::get_native()
 {
     return renderer_;
+}
+
+void *SDLRenderer::create_font_texture( const uint8_t *data, int width, int height )
+{
+    SDL_Texture *texture = SDL_CreateTexture( (SDL_Renderer*) renderer_,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING, width, height);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    int pitch;
+    uint32_t *pixels;
+    if (SDL_LockTexture(texture, nullptr, (void**) &pixels, &pitch) == 0)
+    {
+        // FIXME: use 'pitch'
+        for (int i = 0, t = width * height; i < t; ++i)
+        {
+            pixels[i] = (data[i]) ? 0 : 0x000000FF;
+        }
+        SDL_UnlockTexture(texture);
+    }
+
+    return texture;
 }
 
 ScaledRenderer::ScaledRenderer( bool init, int w1, int h1, int scale, uint32_t color ) :

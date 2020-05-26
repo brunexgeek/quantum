@@ -6,22 +6,27 @@
 #include <quantum/fonts.hh>
 #include <unistd.h>
 #include <iostream>
-#include "../fonts/chicago-regular.hh"
+#include "../fonts/system-bold.hh"
 
 using namespace quantum;
 
 static constexpr int SCALE = 2;
-static constexpr int SCREEN_WIDTH = 1024 / 2;
-static constexpr int SCREEN_HEIGHT = 768 / 2;
+static constexpr int SCREEN_WIDTH = 640 / 2;
+static constexpr int SCREEN_HEIGHT = 480 / 2;
 
 int main( int argc, char **argv )
 {
     ScaledRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, 2, 0x7F7F7FFF);
     //SDLRenderer renderer(true, SCREEN_WIDTH, SCREEN_HEIGHT, 0x7F7F7FFF);
-    Window window(50, 50, 250, 150);
-    fonts::Font chicago(renderer, CHICAGO_BITMAP, CHICAGO_INFO[0], CHICAGO_INFO[1], CHICAGO_INFO[2], CHICAGO_INFO[3], CHICAGO_GLYPH_COUNT, CHICAGO_GLYPHS);
-    Label text1(10, 10, "the quick brown fox jumps over the lazy dog!", chicago);
-    Label text2(10, 30, "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG!", chicago);
+    int width = 250;
+    int height = 100;
+    int x = SCREEN_WIDTH / 2 - width / 2;
+    int y = SCREEN_HEIGHT / 2 - height / 2;
+    Window window(x, y, width, height);
+    //fonts::Font font(renderer, CHICAGO_BITMAP, CHICAGO_INFO[0], CHICAGO_INFO[1], CHICAGO_INFO[2], CHICAGO_INFO[3], CHICAGO_GLYPH_COUNT, CHICAGO_GLYPHS);
+    fonts::Font font(renderer, SYSTEM_BITMAP, SYSTEM_INFO[0], SYSTEM_INFO[1], SYSTEM_INFO[2], SYSTEM_GLYPH_COUNT, SYSTEM_GLYPHS);
+    Label text1(10, 10, "abcdefghijklmnopqrstuvwxyz", font);
+    Label text2(10, 30, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", font);
     window.append(text1);
     window.append(text2);
     SDLInputManager input(true, renderer);

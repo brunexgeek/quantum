@@ -6,14 +6,14 @@
 struct Glyph
 {
     int code;
-    int index;
+    int start;
     int width;
 };
 
 struct Font
 {
     int width, height;
-    int gwidth, gheight;
+    int gheight;
     std::list<Glyph> glyphs;
 };
 
@@ -33,14 +33,14 @@ static bool parse_font( const char *file_name, Font &font )
 
             if (state == 0)
             {
-                sscanf(line.c_str(), "%d %d %d %d", &font.width, &font.height, &font.gwidth, &font.gheight);
+                sscanf(line.c_str(), "%d %d %d", &font.width, &font.height, &font.gheight);
                 state = 1;
             }
             else
             if (state == 1)
             {
                 Glyph glyph;
-                sscanf(line.c_str(), "%d %d %d", &glyph.code, &glyph.index, &glyph.width);
+                sscanf(line.c_str(), "%d %d %d", &glyph.code, &glyph.start, &glyph.width);
                 font.glyphs.push_back(glyph);
             }
         }
@@ -73,7 +73,7 @@ int main( int argc, char **argv )
 
             output << "int " << argv[3] << "_GLYPHS[] = \n{\n";
             for (auto it = font.glyphs.begin(); it != font.glyphs.end(); ++it)
-                output << "   " << it->code << ", " << it->index << ", " << it->width << ",\n";
+                output << "   " << it->code << ", " << it->start << ", " << it->width << ",\n";
             output << "};\n";
 
             output << "unsigned char " << argv[3] << "_BITMAP[] = {";
@@ -87,7 +87,7 @@ int main( int argc, char **argv )
                 for (std::streamsize i = 0, t = bitmap.gcount(); i < t; ++i)
                 {
                     if ((i % 32) == 0) output << "\n   ";
-                    output << ((buffer[i] > 0) ? 1 : 0) << ",";
+                    output << ((buffer[i] > 128) ? 1 : 0) << ",";
                 }
             }
             output << "};\n";
@@ -96,7 +96,7 @@ int main( int argc, char **argv )
             output << "int " << argv[3] << "_BITMAP_SIZE = " << total << ";\n";
 
             output << "int " << argv[3] << "_INFO[4] = { ";
-            output << font.width << ", " << font.height << ", " << font.gwidth << ", " << font.gheight;
+            output << font.width << ", " << font.height << ", " << font.gheight;
             output << " };\n";
 
             output << "#endif // FONT_" << argv[3] << "_IMPL\n";

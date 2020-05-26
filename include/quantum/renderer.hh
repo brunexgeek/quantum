@@ -6,6 +6,8 @@
 
 namespace quantum {
 
+namespace fonts { class Font; }
+
 struct Point
 {
     int x, y;
@@ -51,8 +53,10 @@ class Renderer
         virtual void fill( uint32_t color ) = 0;
         virtual void clear() = 0;
         virtual void draw() = 0;
+        virtual void draw( void *texture, Rect &from, Rect &to ) = 0;
         virtual int get_scale() const = 0;
         virtual void *get_native() = 0;
+        virtual void *create_font_texture( const uint8_t *data, int width, int height ) = 0;
 };
 
 class SDLRenderer : public Renderer
@@ -69,8 +73,10 @@ class SDLRenderer : public Renderer
         void fill( uint32_t color ) override;
         void clear() override;
         void draw() override;
+        void draw( void *texture, Rect &from, Rect &to ) override;
         int get_scale() const override;
         void *get_native() override;
+        void *create_font_texture( const uint8_t *data, int width, int height ) override;
 
     protected:
         bool init_;

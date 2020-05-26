@@ -140,6 +140,9 @@ void Window::draw( Renderer &rend, bool force )
         rect.x += 1;
         rect.w -= 2;
         rend.rectangle(rect, 0x000000FF);
+        // window caption
+        //int tw = font_.text_width();
+        //rect.x =
     }
 
     for (auto it = children_.begin(); it != children_.end(); ++it)
