@@ -15,7 +15,6 @@ class Widget
     public:
         Widget() = default;
         Widget( int x, int y, int w, int h );
-        Widget( Container *parent, int x, int y, int w, int h );
         virtual void draw( Renderer &rend, bool force = false ) = 0;
         virtual bool update( Event &event ) = 0;
         virtual Point size() const;
@@ -27,11 +26,14 @@ class Widget
         virtual Container *parent();
         virtual bool is_changed() const;
         virtual Point absolute_position() const;
+        virtual bool visible() const;
+        virtual void visible( bool state );
 
     protected:
         Rect rect_;
         bool changed_;
         Container *parent_;
+        bool visible_;
 };
 
 class Container : public Widget
@@ -78,13 +80,14 @@ namespace fonts { class Font; }
 class Label : public Widget
 {
     public:
-        Label( int x, int y, const std::string &text, fonts::Font &font );
+        Label( int x, int y, int w, int h, const std::string &text, fonts::Font &font );
         void draw( Renderer &rend, bool force = false ) override;
         bool update( Event &event ) override;
 
     protected:
         std::string text_;
         fonts::Font &font_;
+        //bool visible_;
 };
 
 } // namespace quantum

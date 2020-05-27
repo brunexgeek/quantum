@@ -4,17 +4,24 @@
 
 namespace quantum {
 
-Widget::Widget( int x, int y, int w, int h ) : rect_(x, y, w, h), changed_(true), parent_(nullptr)
-{
-}
-
-Widget::Widget( Container *parent, int x, int y, int w, int h ) : rect_(x, y, w, h), changed_(true), parent_(parent)
+Widget::Widget( int x, int y, int w, int h ) : rect_(x, y, w, h), changed_(true),
+    parent_(nullptr), visible_(false)
 {
 }
 
 bool Widget::is_changed() const
 {
     return changed_;
+}
+
+bool Widget::visible() const
+{
+    return visible_;
+}
+
+void Widget::visible( bool state )
+{
+    visible_ = state;
 }
 
 Point Widget::size() const
@@ -66,10 +73,6 @@ Container::Container( int x, int y, int w, int h ) : Widget(x, y, w, h)
 {
 }
 
-Container::Container( Container *parent, int x, int y, int w, int h  ) : Widget(parent, x, y, w, h)
-{
-}
-
 Point Container::content_size() const
 {
     return csize_;
@@ -100,6 +103,8 @@ Window::Window( int x, int y, int cwidth, int cheight ) : Container(x, y, cwidth
 
 void Window::draw( Renderer &rend, bool force )
 {
+    if (!visible_) return;
+
     if (changed_ || force)
     {
         int sx = rect_.x;
@@ -201,26 +206,21 @@ Point Window::absolute_position() const
     return Point(rect_.x + BORDER, rect_.y + BORDER + TITLE_HEIGHT);
 }
 
-Label::Label( int x, int y, const std::string &text, fonts::Font &font ) : Widget(x, y, 0, 0),
-    text_(text), font_(font)
+Label::Label( int x, int y, int w, int h,const std::string &text, fonts::Font &font ) : Widget(x, y, w, h),
+    text_(text), font_(font)/*, visible_(true)*/
 {
+    visible(true);
 }
 
 void Label::draw( Renderer &rend, bool force )
 {
-    if (!changed_ && !force) return;
+    if (!visible_ || parent_ == nullptr || (!changed_ && !force)) return;
 
     Point pos;
     pos.x = rect_.x;
     pos.y = rect_.y;
-    if (parent_)
-    {
-        pos += parent_->absolute_position();
-        Point csize = parent_->content_size();
-        font_.draw(rend, text_, pos.x, pos.y, csize.x - rect_.x, csize.y - rect_.y);
-    }
-    else
-        font_.draw(rend, text_, pos.x, pos.y);
+    pos += parent_->absolute_position();
+    font_.draw(rend, text_, pos.x, pos.y, rect_.w, rect_.h);
     changed_ = false;
 }
 

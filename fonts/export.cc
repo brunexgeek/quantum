@@ -35,6 +35,7 @@ static void createGlyphs( const std::list<std::string> &codes, bool *merged, int
             glyph.start = start;
             glyph.width = i - start;
             glyphs.push_back(glyph);
+            std::cerr << "Found glyph " << (char) glyph.code << " at " << glyph.start << std::endl;
             ++it;
             start = -1;
         }

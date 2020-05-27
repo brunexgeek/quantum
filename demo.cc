@@ -10,6 +10,15 @@
 
 using namespace quantum;
 
+static const char *TEXT = "Tyger Tyger, burning bright, \n" \
+    "In the forests of the night;\n" \
+    "What immortal hand or eye,\n" \
+    "Could frame thy fearful symmetry?\n\n" \
+    "In what distant deeps or skies.\n" \
+    "Burnt the fire of thine eyes?\n" \
+    "On what wings dare he aspire?\n" \
+    "What the hand, dare seize the fire?\n";
+
 static constexpr int SCALE = 2;
 static constexpr int SCREEN_WIDTH = 1024 / SCALE;
 static constexpr int SCREEN_HEIGHT = 768 / SCALE;
@@ -23,12 +32,11 @@ int main( int argc, char **argv )
     int x = SCREEN_WIDTH / 2 - width / 2;
     int y = SCREEN_HEIGHT / 2 - height / 2;
     Window window(x, y, width, height);
+    window.visible(true);
     //fonts::Font font(renderer, CHICAGO_BITMAP, CHICAGO_INFO[0], CHICAGO_INFO[1], CHICAGO_INFO[2], CHICAGO_INFO[3], CHICAGO_GLYPH_COUNT, CHICAGO_GLYPHS);
     fonts::Font font(renderer, SYSTEM_BITMAP, SYSTEM_INFO[0], SYSTEM_INFO[1], SYSTEM_INFO[2], SYSTEM_GLYPH_COUNT, SYSTEM_GLYPHS);
-    Label text1(10, 10, "abcdefghijklmnopqrstuvwxyz", font);
-    Label text2(10, 30, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", font);
-    window.append(text1);
-    window.append(text2);
+    Label label(2, 2, width - 4, height - 4, TEXT, font);
+    window.append(label);
     SDLInputManager input(true, renderer);
 
     while (true)

@@ -42,27 +42,38 @@ static bool compare_glyphs( const Glyph &a, int code )
 
 void Font::draw( Renderer &renderer, const std::string &text, int x, int y, int w, int h )
 {
-    if (h > 0 && gh_ > h) return;
-
-    int offset = 0;
+    int xoff = 0;
+    int yoff = 0;
     for (auto it = text.begin(); it != text.end(); ++it)
     {
         int code = (int) *it;
         if (code == 32)
         {
-            offset += 3;
+            xoff += 3;
+            continue;
+        }
+        else
+        if (code == 10)
+        {
+            yoff += gh_ + 1;
+            xoff = 0;
             continue;
         }
 
         auto glyph = std::lower_bound(glyphs_.begin(), glyphs_.end(), code, compare_glyphs);
         if (glyph == glyphs_.end() || code < glyph->code)
             glyph = glyphs_.begin();
-        if (w > 0 && x + offset + glyph->width > x + w) return;
+        if (xoff + glyph->width > w)
+        {
+            xoff = 0;
+            yoff += gh_ + 1;
+        }
+        if (h < gh_ + yoff) return;
 
         Rect from(glyph->start, 0, glyph->width, gh_);
-        Rect to(x + offset, y, glyph->width, gh_);
+        Rect to(x + xoff, y + yoff, glyph->width, gh_);
         renderer.draw(texture_, from, to);
-        offset += glyph->width + 1;
+        xoff += glyph->width + 1;
     }
 }
 
