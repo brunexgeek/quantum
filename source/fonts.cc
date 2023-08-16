@@ -42,6 +42,9 @@ static bool compare_glyphs( const Glyph &a, int code )
 
 void Font::draw( Renderer &renderer, const std::string &text, int x, int y, int w, int h )
 {
+    static const int XSPACE = 1;
+    static const int YSPACE = 3;
+
     int xoff = 0;
     int yoff = 0;
     for (auto it = text.begin(); it != text.end(); ++it)
@@ -55,7 +58,7 @@ void Font::draw( Renderer &renderer, const std::string &text, int x, int y, int 
         else
         if (code == 10)
         {
-            yoff += gh_ + 1;
+            yoff += gh_ + YSPACE;
             xoff = 0;
             continue;
         }
@@ -66,14 +69,14 @@ void Font::draw( Renderer &renderer, const std::string &text, int x, int y, int 
         if (xoff + glyph->width > w)
         {
             xoff = 0;
-            yoff += gh_ + 1;
+            yoff += gh_ + YSPACE;
         }
         if (h < gh_ + yoff) return;
 
         Rect from(glyph->start, 0, glyph->width, gh_);
         Rect to(x + xoff, y + yoff, glyph->width, gh_);
         renderer.draw(texture_, from, to);
-        xoff += glyph->width + 1;
+        xoff += glyph->width + XSPACE;
     }
 }
 
